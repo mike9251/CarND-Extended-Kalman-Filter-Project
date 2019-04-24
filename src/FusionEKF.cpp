@@ -91,8 +91,11 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
     if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
       // TODO: Convert radar from polar to cartesian coordinates 
       //         and initialize state.
+      //Range (magnitude of the position vector).
       float rho = measurement_pack.raw_measurements_(0);
+      // Angle between rho and x-axis
       float phi = measurement_pack.raw_measurements_(1);
+      // Rate of change of the range rho (projection of the velocity onto the rho)
       float rho_dot = measurement_pack.raw_measurements_(2);
 
       float px = rho * cos(phi);
@@ -127,14 +130,21 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   float noise_ax = 9;
   float noise_ay = 9;
   
+  // elapsed time period in micro seconds
   float dt = (measurement_pack.timestamp_ - previous_timestamp_)/1000000.0;
 
   previous_timestamp_ = measurement_pack.timestamp_;
-
+  //kinematic equation
+  //1 0 dt 0   x0              x0 + vx0*dt            x1
+  //0 1 0 dt * y0   + noise =  y0 + vy0*dt + noise =  y1  + noise
+  //0 0 1 0    vx0             vx0                    vx1
+  //0 0 0 1    vy0             vy0                    vy1
   ekf_.F_(0, 2) = dt;
   ekf_.F_(1, 3) = dt;
 
-  // Compute process noise covariance matrix
+  // Compute process covariance matrix
+  // As velocity may change due to random acceleration/deceleration we add it to the noise part.
+  // Assume that prediction for longer period of time is more uncertain than for a short period of time.
   float dt_2 = dt * dt;
   float dt_3 = dt_2 * dt;
   float dt_4 = dt_3 * dt;
