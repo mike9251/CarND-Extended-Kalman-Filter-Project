@@ -36,8 +36,10 @@ FusionEKF::FusionEKF() {
    * TODO: Finish initializing the FusionEKF.
    * TODO: Set the process and measurement noises
    */
+  //Multiplying by the measurement function H_laser_ matrix will drop the velocity information from the state vector x.
+  //Then the measurement position (x,y) and our belief about the object's position can be compared.
   H_laser_ << 1, 0, 0, 0,
-              0, 1, 0, 0; // like mask to extract values for laser measurements
+              0, 1, 0, 0;
 
   Hj_ << 1, 1, 0, 0,
          1, 1, 0, 0,
